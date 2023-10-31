@@ -97,6 +97,7 @@ const ITEMS_PER_PAGE = 6;
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
+  status: string
 ) {
   noStore();
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -114,11 +115,11 @@ export async function fetchFilteredInvoices(
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
       WHERE
-        customers.name ILIKE ${`%${query}%`} OR
+        (customers.name ILIKE ${`%${query}%`} OR
         customers.email ILIKE ${`%${query}%`} OR
         invoices.amount::text ILIKE ${`%${query}%`} OR
-        invoices.date::text ILIKE ${`%${query}%`} OR
-        invoices.status ILIKE ${`%${query}%`}
+        invoices.date::text ILIKE ${`%${query}%`} )AND
+        invoices.status ILIKE ${`%${status}%`}
       ORDER BY invoices.date DESC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
@@ -130,7 +131,7 @@ export async function fetchFilteredInvoices(
   }
 }
 
-export async function fetchInvoicesPages(query: string) {
+export async function fetchInvoicesPages(query: string, status: string) {
   noStore();
 
   try {
@@ -138,11 +139,11 @@ export async function fetchInvoicesPages(query: string) {
     FROM invoices
     JOIN customers ON invoices.customer_id = customers.id
     WHERE
-      customers.name ILIKE ${`%${query}%`} OR
+      (customers.name ILIKE ${`%${query}%`} OR
       customers.email ILIKE ${`%${query}%`} OR
       invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
+      invoices.date::text ILIKE ${`%${query}%`} )AND
+      invoices.status ILIKE ${`%${status}%`}
   `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
